@@ -1,0 +1,63 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web (obfuscate JS)
+        run: npm run build:web
+
+      - name: Generate Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug assembleRelease
+
+      - name: Sign release APK (opsional, butuh secrets keystore)
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "Secrets keystore belum diisi, lewati signing release."; exit 0; fi
+          echo "$KEYSTORE_B64" | base64 -d > release.keystore
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          "$BT/zipalign" -f -p 4 "$UNSIGNED" aligned.apk
+          "$BT/apksigner" sign --ks release.keystore --ks-pass env:KEYSTORE_PASS \
+            --ks-key-alias "$KEY_ALIAS" --out lapak-kosan-release.apk aligned.apk
+          rm -f release.keystore
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lapak-kosan-apk
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            lapak-kosan-release.apk
+          if-no-files-found: warn
