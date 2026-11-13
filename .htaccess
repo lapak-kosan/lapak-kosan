@@ -1,0 +1,17 @@
+# Halaman pertama saat domain dibuka
+DirectoryIndex index.html
+
+# Jangan tampilkan daftar isi folder
+Options -Indexes
+
+# Halaman 404 sendiri
+ErrorDocument 404 /404.html
+
+# Manifest PWA
+AddType application/manifest+json .webmanifest
+# Service worker jangan di-cache lama agar update cepat
+<IfModule mod_headers.c>
+  <Files "sw.js">
+    Header set Cache-Control "no-cache"
+  </Files>
+</IfModule>
