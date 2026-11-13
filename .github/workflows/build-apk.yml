@@ -10,6 +10,8 @@ on:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # perlu untuk upload APK ke Release
     steps:
       - uses: actions/checkout@v4
 
@@ -62,3 +64,19 @@ jobs:
             android/app/build/outputs/apk/debug/app-debug.apk
             lapak-kosan-release.apk
           if-no-files-found: warn
+
+      # Naikkan APK ke Release "apk-terbaru" supaya link download-nya tetap:
+      # https://github.com/lapak-kosan/lapak-kosan/releases/download/apk-terbaru/Lapak-Kosan.apk
+      # Pakai APK release yang sudah ditandatangani kalau ada, kalau tidak pakai APK debug.
+      - name: Publish APK ke Release apk-terbaru
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f lapak-kosan-release.apk ]; then
+            cp lapak-kosan-release.apk Lapak-Kosan.apk
+          else
+            cp android/app/build/outputs/apk/debug/app-debug.apk Lapak-Kosan.apk
+          fi
+          gh release view apk-terbaru >/dev/null 2>&1 || \
+            gh release create apk-terbaru --title "APK terbaru" --notes "APK Lapak Kosan terbaru, diperbarui otomatis tiap ada perubahan di main." --latest=false
+          gh release upload apk-terbaru Lapak-Kosan.apk --clobber
