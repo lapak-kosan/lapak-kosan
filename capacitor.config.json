@@ -1,0 +1,11 @@
+{
+  "appId": "com.lapakkosan.app",
+  "appName": "Lapak Kosan",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "lapak-kosan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lapak Kosan: PWA yang dibungkus jadi APK (Capacitor) dengan JS ter-obfuscate.",
+  "scripts": {
+    "build:web": "node scripts/build-web.js",
+    "build:web:dev": "node scripts/build-web.js --no-obfuscate",
+    "cap:sync": "npm run build:web && npx cap sync android"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "javascript-obfuscator": "^4.1.1"
+  }
+}
