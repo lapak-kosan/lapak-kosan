@@ -31,6 +31,7 @@ jobs:
       - name: Generate Android project
         run: |
           npx cap add android
+          node scripts/make-android-icons.js
           npx cap sync android
 
       - name: Build APK
